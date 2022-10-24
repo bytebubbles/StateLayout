@@ -16,5 +16,7 @@
         <attr name="sl_animDuration" format="integer" />
     </declare-styleable>
 
+    <item name="slErrorImg" type="id">slErrorImg</item>
+    <item name="slErrorTv" type="id">slErrorTv</item>
 
 </resources>
