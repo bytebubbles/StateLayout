@@ -4,7 +4,9 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.Activity
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import androidx.fragment.app.Fragment
@@ -14,6 +16,8 @@ import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.core.os.HandlerCompat
 import com.lxj.statelayout.State.*
 
@@ -38,6 +42,11 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
     var errorLayoutId = 0
     private var hasShowLoading = false
     private val mHandler = Handler(Looper.getMainLooper())
+
+    private var originErrorDraw: Drawable? = null
+    private var originErrorStr: String? = null
+    private var originWidth: Int = -1
+    private var originHeight: Int = -1
 
     init {
         val ta = context.obtainStyledAttributes(attributeSet, R.styleable.StateLayout)
@@ -158,7 +167,51 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         return this
     }
 
-    fun showError(): StateLayout {
+    fun showErrorImgTV(@DrawableRes img: Int, str: String,  width: Int = -1, height: Int = -1): StateLayout{
+        try {
+            var tempErrorDraw = context.resources.getDrawable(img)
+            return showErrorImgTV(tempErrorDraw, str, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showErrorImgTV(@DrawableRes img: Int, @StringRes str: Int, width: Int = -1, height: Int = -1):StateLayout{
+        try {
+            var tempErrorDraw = context.resources.getDrawable(img)
+            var tempErrorStr = context.resources.getString(str)
+            return showErrorImgTV(tempErrorDraw, tempErrorStr, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showErrorImgTV(imgDrawable: Drawable, str: String, width: Int = -1, height: Int = -1): StateLayout{
+        //复原样式
+        recoverOriginUI()
+        if(errorView != null){
+            val errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
+            val errorTv = errorView!!.findViewById<View>(R.id.sl_error_tv)
+            if(errorImg is ImageView){
+                errorImg.setImageDrawable(imgDrawable)
+                val errorLayoutParams = errorImg.layoutParams
+                if(width != -1){
+                    errorLayoutParams.width = width
+                }
+                if(height != -1){
+                    errorLayoutParams.height = height
+                }
+                errorImg.layoutParams = errorLayoutParams
+            }
+
+            if(errorTv is TextView){
+                errorTv.text = str
+            }
+        }
+        return showErrorLayout()
+    }
+
+    private fun showErrorLayout(): StateLayout{
         mHandler.post {
             if(noEmptyAndError) {
                 switchLayout(Content)
@@ -167,6 +220,37 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             }
         }
         return this
+    }
+
+    fun showError(): StateLayout {
+        //复原样式
+        recoverOriginUI()
+        showErrorLayout()
+        return this
+    }
+
+    private fun recoverOriginUI() {
+        var errorImg: View? = null
+        if(originErrorDraw != null && errorView != null){
+           errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
+            if(errorImg is ImageView){
+                errorImg.setImageDrawable(originErrorDraw)
+            }
+        }
+        if(originErrorStr != null && errorView != null){
+            val slErrorTv = errorView!!.findViewById<View>(R.id.sl_error_tv)
+            if(slErrorTv is TextView){
+                slErrorTv.text = originErrorStr
+            }
+        }
+        val errorLayoutParams = errorImg?.layoutParams
+        if(originWidth != -1){
+            errorLayoutParams?.width = originWidth
+        }
+        if (originHeight != -1){
+            errorLayoutParams?.height = originHeight
+        }
+        errorImg?.layoutParams = errorLayoutParams
     }
 
     private fun switch(v: View?) {
@@ -287,8 +371,27 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             alpha = 0f
             setOnClickListener { retry() }
             addView(errorView)
+            saveOriginImgTv()
         }
         return this
+    }
+
+    private fun saveOriginImgTv() {
+        val errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
+        val errorTv = errorView!!.findViewById<View>(R.id.sl_error_tv)
+        if(errorImg is ImageView){
+            originErrorDraw = errorImg.drawable
+            val errorLayoutParams = errorImg.layoutParams
+            if(width != -1){
+                originWidth = errorLayoutParams.width
+            }
+            if(height != -1){
+                originHeight = errorLayoutParams.height
+            }
+        }
+        if(errorTv is TextView){
+            originErrorStr = errorTv.text.toString()
+        }
     }
 
     /**

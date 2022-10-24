@@ -51,10 +51,17 @@ class MainActivity : AppCompatActivity() {
                 .wrap(view_content)
         btn_loading.setOnClickListener {
             layout2.showLoading()
+            //layout2.showErrorImgTV(resources.getDrawable(R.drawable.default_img_mycomment), "测试错误2")
         }
-        btn_empty.setOnClickListener { layout2.showEmpty() }
+        btn_empty.setOnClickListener {
+            layout2.showEmpty()
+            //layout2.showErrorImgTV(resources.getDrawable(R.drawable.default_img_none)!!, "测试错误", )
+        }
         btn_error.setOnClickListener { layout2.showError() }
-        btn_content.setOnClickListener { layout2.showContent() }
+        btn_content.setOnClickListener {
+            layout2.showContent()
+            //layout2.showErrorImgTV(R.drawable.default_img_shixiao, "", 1080, 500)
+        }
         Handler().postDelayed({
             layout2.showContent()
         }, 1000)
