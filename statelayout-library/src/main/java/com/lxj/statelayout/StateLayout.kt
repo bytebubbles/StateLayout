@@ -271,7 +271,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
     }
 
     private fun refresh() {
-        if (emptyView == null) return
+        if (emptyView == null || mRefreshAction == null) return
         hasShowLoading = false
         showLoading()
         mHandler.postDelayed({
@@ -365,7 +365,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
                     }
                 }
             }
-            setOnClickListener(mRetryAction)
+            setOnClickListener { refresh() }
         }
         return this
     }
