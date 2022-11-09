@@ -270,6 +270,17 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         }, animDuration)
     }
 
+    private fun refresh() {
+        if (emptyView == null) return
+        hasShowLoading = false
+        showLoading()
+        mHandler.postDelayed({
+            mRefreshAction?.invoke(emptyView!!)
+        }, animDuration)
+    }
+
+
+
     var switchTask: SwitchTask? = null
 
     inner class SwitchTask(private var target: View?) : Runnable {
@@ -312,6 +323,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
     }
 
     var mRetryAction: ((errView: View) -> Unit)? = null
+    var mRefreshAction: ((emptyView: View) -> Unit)? = null
 
     /**
      * 设置加载中的布局
@@ -353,7 +365,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
                     }
                 }
             }
-
+            setOnClickListener(mRetryAction)
         }
         return this
     }
@@ -417,6 +429,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
                enableLoadingShadow: Boolean? = null,
                enableTouchWhenLoading: Boolean? = null,
                showLoadingOnce: Boolean? = null,
+               refreshAction:  ((errView: View) -> Unit)? = null,
                retryAction: ((errView: View) -> Unit)? = null): StateLayout {
         if(emptyText!=null) this.emptyText = emptyText
         if(emptyIcon!=null) this.emptyIcon = emptyIcon
@@ -444,6 +457,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         if(enableTouchWhenLoading!=null) this.enableTouchWhenLoading = enableTouchWhenLoading
         if(showLoadingOnce!=null) this.showLoadingOnce = showLoadingOnce
         if(retryAction!=null)mRetryAction = retryAction
+        if(refreshAction!=null)mRefreshAction = refreshAction
         return this
     }
 
