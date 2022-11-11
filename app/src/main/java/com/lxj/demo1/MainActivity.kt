@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
                 .wrap(view_content)
         btn_loading.setOnClickListener {
             layout2.showLoading()
+            //layout2.showEmptyImgTV(resources.getDrawable(R.drawable.default_img_mycomment), "测试恐怖鸡")
             //layout2.showErrorImgTV(resources.getDrawable(R.drawable.default_img_mycomment), "测试错误2")
         }
         btn_empty.setOnClickListener {

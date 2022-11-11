@@ -7,14 +7,14 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/ivNoDataIcon"
+        android:id="@+id/sl_empty_img"
         android:src="@drawable/_statelayout_empty"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_gravity="center"/>
 
     <TextView
-        android:id="@+id/tvNoDataText"
+        android:id="@+id/sl_empty_tv"
         android:layout_marginTop="6dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

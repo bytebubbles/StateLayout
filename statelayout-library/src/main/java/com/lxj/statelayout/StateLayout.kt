@@ -11,14 +11,12 @@ import android.os.Handler
 import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.util.AttributeSet
-import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.core.os.HandlerCompat
 import com.lxj.statelayout.State.*
 
 class StateLayout @JvmOverloads constructor(context: Context, attributeSet: AttributeSet? = null, defStyleAttr: Int = 0)
@@ -45,8 +43,13 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
 
     private var originErrorDraw: Drawable? = null
     private var originErrorStr: String? = null
-    private var originWidth: Int = -1
-    private var originHeight: Int = -1
+    private var originErrorWidth: Int = -1
+    private var originErrorHeight: Int = -1
+
+    private var originEmptyDraw: Drawable? = null
+    private var originEmptyStr: String? = null
+    private var originEmptyWidth: Int = -1
+    private var originEmptyHeight: Int = -1
 
     init {
         val ta = context.obtainStyledAttributes(attributeSet, R.styleable.StateLayout)
@@ -156,7 +159,52 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         return this
     }
 
-    fun showEmpty(): StateLayout {
+
+    fun showEmptyImgTV(@DrawableRes img: Int, str: String,  width: Int = -1, height: Int = -1): StateLayout{
+        try {
+            var tempEmptyDraw = context.resources.getDrawable(img)
+            return showEmptyImgTV(tempEmptyDraw, str, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showEmptyImgTV(@DrawableRes img: Int, @StringRes str: Int, width: Int = -1, height: Int = -1):StateLayout{
+        try {
+            var tempEmptyDraw = context.resources.getDrawable(img)
+            var tempEmptyStr = context.resources.getString(str)
+            return showEmptyImgTV(tempEmptyDraw, tempEmptyStr, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showEmptyImgTV(imgDrawable: Drawable, str: String, width: Int = -1, height: Int = -1): StateLayout{
+        //复原样式
+        recoverEmptyOriginUI()
+        if(emptyView != null){
+            val emptyImg = emptyView!!.findViewById<View>(R.id.sl_empty_img)
+            val emptyTv = emptyView!!.findViewById<View>(R.id.sl_empty_tv)
+            if(emptyImg is ImageView){
+                emptyImg.setImageDrawable(imgDrawable)
+                val errorLayoutParams = emptyImg.layoutParams
+                if(width != -1){
+                    errorLayoutParams.width = width
+                }
+                if(height != -1){
+                    errorLayoutParams.height = height
+                }
+                emptyImg.layoutParams = errorLayoutParams
+            }
+
+            if(emptyTv is TextView){
+                emptyTv.text = str
+            }
+        }
+        return showEmptyLayout()
+    }
+
+    private fun showEmptyLayout(): StateLayout{
         mHandler.post {
             if(noEmptyAndError) {
                 switchLayout(Content)
@@ -165,6 +213,35 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             }
         }
         return this
+    }
+
+    fun showEmpty(): StateLayout {
+        recoverEmptyOriginUI()
+        return showEmptyLayout()
+    }
+
+    private fun recoverEmptyOriginUI() {
+        var emptyImg: View? = null
+        if(originEmptyDraw != null && emptyView != null){
+            emptyImg = emptyView!!.findViewById<View>(R.id.sl_empty_img)
+            if(emptyImg is ImageView){
+                emptyImg.setImageDrawable(originEmptyDraw)
+            }
+        }
+        if(originEmptyStr != null && emptyView != null){
+            val slEmptyTv = emptyView!!.findViewById<View>(R.id.sl_empty_tv)
+            if(slEmptyTv is TextView){
+                slEmptyTv.text = originEmptyStr
+            }
+        }
+        val emptyLayoutParams = emptyImg?.layoutParams
+        if(originEmptyWidth != -1){
+            emptyLayoutParams?.width = originEmptyWidth
+        }
+        if (originEmptyHeight != -1){
+            emptyLayoutParams?.height = originEmptyHeight
+        }
+        emptyImg?.layoutParams = emptyLayoutParams
     }
 
     fun showErrorImgTV(@DrawableRes img: Int, str: String,  width: Int = -1, height: Int = -1): StateLayout{
@@ -188,7 +265,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
 
     fun showErrorImgTV(imgDrawable: Drawable, str: String, width: Int = -1, height: Int = -1): StateLayout{
         //复原样式
-        recoverOriginUI()
+        recoverErrorOriginUI()
         if(errorView != null){
             val errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
             val errorTv = errorView!!.findViewById<View>(R.id.sl_error_tv)
@@ -224,12 +301,12 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
 
     fun showError(): StateLayout {
         //复原样式
-        recoverOriginUI()
+        recoverErrorOriginUI()
         showErrorLayout()
         return this
     }
 
-    private fun recoverOriginUI() {
+    private fun recoverErrorOriginUI() {
         var errorImg: View? = null
         if(originErrorDraw != null && errorView != null){
            errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
@@ -244,11 +321,11 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             }
         }
         val errorLayoutParams = errorImg?.layoutParams
-        if(originWidth != -1){
-            errorLayoutParams?.width = originWidth
+        if(originErrorWidth != -1){
+            errorLayoutParams?.width = originErrorWidth
         }
-        if (originHeight != -1){
-            errorLayoutParams?.height = originHeight
+        if (originErrorHeight != -1){
+            errorLayoutParams?.height = originErrorHeight
         }
         errorImg?.layoutParams = errorLayoutParams
     }
@@ -352,7 +429,7 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             visibility = View.GONE
             alpha = 0f
             addView(emptyView)
-
+            saveEmptyOriginImgTv()
             //智能设置文字和图标
             if(emptyView!=null && emptyView is ViewGroup){
                 val group = emptyView as ViewGroup
@@ -370,6 +447,24 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         return this
     }
 
+    private fun saveEmptyOriginImgTv() {
+        val emptyImg = emptyView!!.findViewById<View>(R.id.sl_empty_img)
+        val emptyTv = emptyView!!.findViewById<View>(R.id.sl_empty_tv)
+        if(emptyImg is ImageView){
+            originEmptyDraw = emptyImg.drawable
+            val emptyLayoutParams = emptyImg.layoutParams
+            if(width != -1){
+                originEmptyWidth = emptyLayoutParams.width
+            }
+            if(height != -1){
+                originEmptyHeight = emptyLayoutParams.height
+            }
+        }
+        if(emptyTv is TextView){
+            originEmptyStr = emptyTv.text.toString()
+        }
+    }
+
     /**
      * 设置加载失败的布局
      */
@@ -383,22 +478,22 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
             alpha = 0f
             setOnClickListener { retry() }
             addView(errorView)
-            saveOriginImgTv()
+            saveErrorOriginImgTv()
         }
         return this
     }
 
-    private fun saveOriginImgTv() {
+    private fun saveErrorOriginImgTv() {
         val errorImg = errorView!!.findViewById<View>(R.id.sl_error_img)
         val errorTv = errorView!!.findViewById<View>(R.id.sl_error_tv)
         if(errorImg is ImageView){
             originErrorDraw = errorImg.drawable
             val errorLayoutParams = errorImg.layoutParams
             if(width != -1){
-                originWidth = errorLayoutParams.width
+                originErrorWidth = errorLayoutParams.width
             }
             if(height != -1){
-                originHeight = errorLayoutParams.height
+                originErrorHeight = errorLayoutParams.height
             }
         }
         if(errorTv is TextView){

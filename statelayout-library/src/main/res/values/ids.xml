@@ -4,4 +4,7 @@
     <item name="sl_error_tv" type="id"/>
     <item name="sl_error_img" type="id"/>
 
+    <item name="sl_empty_tv" type="id"/>
+    <item name="sl_empty_img" type="id"/>
+
 </resources>
