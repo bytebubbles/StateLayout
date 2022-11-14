@@ -159,11 +159,29 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         return this
     }
 
+    fun showEmptyImgTV(@DrawableRes img: Int, str: String): StateLayout{
+        try {
+            var tempEmptyDraw = context.resources.getDrawable(img)
+            return showEmptyImgTV(tempEmptyDraw, str, -1, -1)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
 
     fun showEmptyImgTV(@DrawableRes img: Int, str: String,  width: Int = -1, height: Int = -1): StateLayout{
         try {
             var tempEmptyDraw = context.resources.getDrawable(img)
             return showEmptyImgTV(tempEmptyDraw, str, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showEmptyImgTV(@DrawableRes img: Int, @StringRes str: Int):StateLayout{
+        try {
+            var tempEmptyDraw = context.resources.getDrawable(img)
+            var tempEmptyStr = context.resources.getString(str)
+            return showEmptyImgTV(tempEmptyDraw, tempEmptyStr, -1, -1)
         }catch (e : Resources.NotFoundException){
             throw e
         }
@@ -244,10 +262,29 @@ class StateLayout @JvmOverloads constructor(context: Context, attributeSet: Attr
         emptyImg?.layoutParams = emptyLayoutParams
     }
 
+    fun showErrorImgTV(@DrawableRes img: Int, str: String): StateLayout{
+        try {
+            var tempErrorDraw = context.resources.getDrawable(img)
+            return showErrorImgTV(tempErrorDraw, str, -1, -1)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
     fun showErrorImgTV(@DrawableRes img: Int, str: String,  width: Int = -1, height: Int = -1): StateLayout{
         try {
             var tempErrorDraw = context.resources.getDrawable(img)
             return showErrorImgTV(tempErrorDraw, str, width, height)
+        }catch (e : Resources.NotFoundException){
+            throw e
+        }
+    }
+
+    fun showErrorImgTV(@DrawableRes img: Int, @StringRes str: Int):StateLayout{
+        try {
+            var tempErrorDraw = context.resources.getDrawable(img)
+            var tempErrorStr = context.resources.getString(str)
+            return showErrorImgTV(tempErrorDraw, tempErrorStr, -1, -1)
         }catch (e : Resources.NotFoundException){
             throw e
         }
